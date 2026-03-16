@@ -52,19 +52,6 @@ schema:
   enrich_interval: int
   log_level: list(DEBUG|INFO|WARNING|ERROR)
 
-# ── Environment variables passed to the container ───────────────────────────
-environment:
-  DB_MODE: "{{db_mode}}"
-  DB_HOST: "{{db_host}}"
-  DB_PORT: "{{db_port}}"
-  DB_NAME: "{{db_name}}"
-  DB_USER: "{{db_user}}"
-  DB_PASSWORD: "{{db_password}}"
-  PORTFOLIO_PATH: "{{portfolio_path}}"
-  FILE_POLL_INTERVAL: "{{file_poll_interval}}"
-  ENRICH_INTERVAL: "{{enrich_interval}}"
-  LOG_LEVEL: "{{log_level}}"
-
 # ── Startup ──────────────────────────────────────────────────────────────────
 startup: application
 boot: auto
