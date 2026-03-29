@@ -8,10 +8,20 @@
 
 ## 0.1.26 — 2026-03-29
 
+### Fixed
+- **Critical:** Fixed add-on startup failure when bashio config is missing or incomplete.
+  The app now gracefully handles empty configuration values and provides clear error
+  messages via `/health` endpoint instead of crashing.
+- Improved configuration validation with field validators for `db_port` and `update_schedule`.
+- Enhanced `/health` endpoint to report configuration validity and errors.
+- Added troubleshooting guide to DOCS.md for common startup errors.
+
 ### Changed
 - **Simplified Dockerfile**: removed COPY heredocs and runtime patch script in
   favour of standard COPY commands (builds now run on GitHub Actions, not
   local HA Docker-in-Docker)
+- `run.sh` now logs which configuration source is being used (bashio, options.json, or env vars).
+- Empty environment variables are no longer passed to Pydantic; defaults are used instead.
 
 ## 0.1.25 — 2026-03-14
 
