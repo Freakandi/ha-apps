@@ -6,6 +6,17 @@
 - Historical data fetch extended from 10 to 30 years for richer analysis
 - Indices with limited history gracefully show only available periods
 
+## [0.1.29] — 2026-03-29
+
+### Fixed
+- Fix bashio config not being read in HA production — all user settings
+  (db_host, db_port, db_user, db_password, update_schedule, log_level)
+  were silently falling back to defaults because the bashio shell library
+  was not sourced in run.sh
+- Alembic migrations now connect to the user-configured database instead
+  of localhost
+- Log level and update schedule now respect user configuration
+
 ## 0.1.28 — 2026-03-29
 
 ### Fixed
