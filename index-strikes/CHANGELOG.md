@@ -1,7 +1,18 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.1.36] — 2026-03-30
 ### Changed
+- Weekday Volatility section now shows Q97.5/Q2.5 quantiles (previously Q95/Q5).
+- Added interactive long-period selector (10Y / 20Y / 30Y) and short-period
+  selector (90D / 180D / 360D) to the Weekday Volatility section.
+- Long period options are hidden automatically when the index has insufficient
+  history (requires ≥80% data coverage, same rule as Return Statistics blocks).
+- Default periods are 20Y (long) and 180D (short).
+- Period changes trigger an HTMX partial swap — only the weekday table updates.
+- Return Statistics section redesigned: replaced the 10Y / 30D / 5D blocks with up to four long-horizon windows — 180D, 10Y, 20Y, 30Y. Year-based windows use exact calendar cutoffs (`pd.DateOffset`). Periods with less than 80% data coverage are excluded.
+- Strike Prices header now shows today's date alongside the last known close date; a staleness warning appears when data is more than 3 days old.
 - Strike prices now show multi-period analysis: 30Y, 20Y, 10Y, and Weekday 10Y
 - Historical data fetch extended from 10 to 30 years for richer analysis
 - Indices with limited history gracefully show only available periods
