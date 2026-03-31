@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-03-31
+### Security
+- Escape user-supplied symbol and exception text in refresh endpoint (XSS)
+
+### Performance
+- Chunked bulk INSERT in `save_market_data_to_db` (N→1 round trips, chunk size 7 000)
+
+### Reliability
+- Explicit async HTTP in `update_exchange_codes` via `httpx.AsyncClient`
+- Migration retry attempts are now logged at WARNING level so failed DB
+  connection attempts during startup are visible in the add-on log
+
+### Fixed
+- Dashboard and `/health` endpoint no longer show "Database unavailable" on
+  slow DB connections — removed the hard 5-second `asyncio.wait_for` timeout
+  that caused spurious failures when the database was reachable but responding
+  slowly (e.g. during Alembic migrations or under load)
+
+### Changed
+- Return Statistics section now shows "(daily)" or "(N-session)" in its caption to
+  match the active Strike Prices tab; switching to the Weekly tab shows the return
+  distribution calculated from N-session returns (same N as the weekly strike prices).
+  Manual expiry override updates the statistics automatically on reload.
+
 ## [0.2.1] — 2026-03-31
 ### Fixed
 - Fix Daily/Weekly strike tabs both visible in HA ingress due to browser caching
