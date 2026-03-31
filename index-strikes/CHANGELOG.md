@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-03-31
+### Added
+- Weekly strike price calculations based on N-session returns
+- Exchange calendar integration (exchange_calendars) for accurate
+  trading day counting
+- Dashboard tabs: switch between Daily and Weekly strike views
+- Manual expiry date override on the weekly strikes tab
+- Per-index configuration: expiry weekday and exchange MIC code
+- MIC code reference list with autocomplete and scheduled sync
+  from ISO 10383 registry
+
 ## [0.1.37] — 2026-03-30
 ### Fixed
 - Log timestamps now use the host's local timezone (e.g. CEST) instead of UTC
