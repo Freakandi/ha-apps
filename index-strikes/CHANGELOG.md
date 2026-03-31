@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-03-31
+### Fixed
+- Fix Daily/Weekly strike tabs both visible in HA ingress due to browser caching
+  stale CSS/JS from prior version — static assets now include content-hash query
+  parameters for automatic cache-busting on every deploy
+
 ## [0.2.0] — 2026-03-31
 ### Added
 - Weekly strike price calculations based on N-session returns
