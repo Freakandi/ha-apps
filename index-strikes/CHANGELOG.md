@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-04-01
+
+### Added
+- Minimum Movement section on the dashboard: shows the absolute minimum daily
+  movement (Q2.5 quantile of absolute returns) for multiple history windows
+  (30Y, 20Y, 10Y, Weekday 10Y), expressed as both a percentage and concrete
+  up/down price levels from the last close.
+- Weekly Minimum Movement section: same analysis using N-session returns
+  (same window as the active weekly strike expiry), with 30Y, 20Y, and 10Y
+  windows.
+- Toolbar toggle to show/hide the Minimum Movement sections independently.
+- `MinimumMovementResult` dataclass in `index_strikes/services/strikes.py`
+  for structured result values.
+- `compute_minimum_movement()` and `compute_weekly_minimum_movement()`
+  calculation functions with automatic window selection based on data
+  availability and a configurable quantile level.
+
+### Changed
+- Refactored strike computation: extracted named constants (`_MIN_PERIOD_SAMPLES`,
+  `_FRIDAY`), deduplicated year-period iteration into a shared `_iter_year_periods`
+  helper, introduced `DashboardData` dataclass with fully-parameterised type
+  annotations, and decomposed `_compute_dashboard_data_sync` by extracting
+  `_compute_weekly_strikes_data` and `_compute_weekly_stats_data` helpers.
+
 ## [0.2.2] — 2026-03-31
 ### Security
 - Escape user-supplied symbol and exception text in refresh endpoint (XSS)
