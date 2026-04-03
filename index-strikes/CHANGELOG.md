@@ -2,6 +2,56 @@
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-04-04
+
+### Added
+- Sticky header with index identity band, refresh icon, and theme toggle
+  in a unified icon-stack layout
+- Responsive label abbreviations on mobile for toolbar toggles
+
+### Fixed
+- Dashboard: quantile form "Apply" no longer teleports to wrong view/tab when the
+  user has JS-navigated since the last page load
+- Dashboard: quantile form "Reset" link now preserves the current view/tab instead
+  of always resetting to Strike Bounds / Daily
+- MM Weekly expiry override: page no longer resets to Strike Bounds / Daily
+  view after applying or resetting the override expiry date
+- Quantile settings form: changing quantile values now preserves the active
+  view and sub-tab instead of resetting to Strike Bounds / Daily
+- Movement Frequency slider: fix input field overlapping slider track (flex layout)
+- Weekly expiry weekday: weekday 0 (Monday) was silently replaced by Friday
+  due to `or`-based falsy check; now uses explicit `is not None` guard
+- Quantile slider disappearing when page loads on weekly tab (DOMContentLoaded
+  relocation fix)
+- Light-mode theme toggle visibility and stats tab reset on view switch
+
+### Changed
+- Replaced Minimum Movement Q2.5 table with interactive Movement Frequency
+  slider (0–5%, 0.01% steps) showing how often a given move occurs per period
+- Movement frequency computed client-side for instant slider response
+- Replaced dual quantile number inputs with a symmetric tail-percentage slider
+  (0–50%, auto-submit on release)
+- Quantile slider relocated into tab content area (below section headers)
+  instead of above the tab bar
+- Unified daily/weekly Movement Frequency sliders into a single shared
+  slider that relocates between tabs via DOM moves
+- Redesigned toolbar: unified view and period toggles on a single line
+  with segmented button design (Period on left, View on right)
+- Return statistics section now toggles between daily and weekly context
+  when switching Movement Frequency tabs
+- Header aligned with main container at all viewport widths via Pico's
+  `.container` class
+- `compute_dashboard_data` now raises `ValueError` on empty DataFrame instead
+  of returning a dict; callers catch the exception for cleaner type safety
+- Promoted `_MIN_PERIOD_SAMPLES` and `_iter_year_periods` to public names
+  (`MIN_PERIOD_SAMPLES`, `iter_year_periods`) in `statistics.py`
+- Replaced `== True` SQLAlchemy anti-pattern with `.is_(True)`
+- Added parameterized type annotations to `build_history_rows` and
+  `_dists_to_dicts`
+- Extracted inline f-string HTML in `refresh_symbol` endpoint to Jinja2
+  partial (`partials/refresh_status.html`); fixed relative `hx-post` URL
+  to absolute path
+
 ## [0.3.0] — 2026-04-01
 
 ### Added
