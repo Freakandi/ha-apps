@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-04-13
+
+### Fixed
+- Data refresh (scheduled and manual) stayed 1+ trading days behind and
+  got fully stuck over weekends/holidays. The incremental fetch now uses
+  today as its end date so the scheduled update after market close picks
+  up the current day's close immediately, and weekend gaps no longer
+  block updates. Row upsert switched from ON CONFLICT DO NOTHING to
+  ON CONFLICT DO UPDATE so intraday fetches are corrected by the real
+  closing price once the market closes.
+
 ## [1.0.1] — 2026-04-04
 
 ### Fixed
