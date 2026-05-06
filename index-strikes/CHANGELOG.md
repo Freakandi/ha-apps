@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [1.0.3] — 2026-05-06
+
+### Fixed
+- Data refresh stuck after a holiday on the index's exchange: when the
+  previous stored date was a holiday, yfinance returned only the new
+  trading day and `prepare_dataframe` silently dropped it. Single-row
+  inputs are now retained when an explicit `prev_close_anchor` is
+  provided.
+- Today's intraday/partial bar was being persisted as the close when
+  the refresh ran during market hours. Today's row is now filtered out
+  unconditionally before saving; the next refresh on a later calendar
+  day picks up the official close cleanly.
+- Closes previously stored from intraday partial bars were never
+  corrected because the incremental fetch started at `last_date + 1`.
+  Refreshes now re-fetch the last 5 calendar days on every run so
+  `ON CONFLICT DO UPDATE` overwrites stale closes (and recomputes
+  `Prev_Close` / `Return_Pct` on the row that follows).
+
 ## [1.0.2] — 2026-04-13
 
 ### Fixed
