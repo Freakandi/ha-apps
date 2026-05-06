@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [1.0.4] — 2026-05-06
+
+### Fixed
+- Poisoned today-row (intraday close written by a pre-1.0.3 run) was never
+  cleaned up: the incremental lookback was gated on `last_date < today`,
+  which was false when today's row was already in the DB, so stale closes
+  within the lookback window were silently left uncorrected.  The refresh
+  now deletes today's row unconditionally before running the lookback,
+  ensuring `ON CONFLICT DO UPDATE` can correct all rows in the rolling
+  window.
+
 ## [1.0.3] — 2026-05-06
 
 ### Fixed
