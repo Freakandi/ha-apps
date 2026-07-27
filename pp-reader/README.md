@@ -1,141 +1,59 @@
 # PP Reader
 
-A standalone Home Assistant App that reads [Portfolio Performance](https://www.portfolio-performance.info/) `.portfolio` files and serves an interactive financial dashboard. Built as a Docker container backed by PostgreSQL, it replaces the legacy HACS integration with a modern full-stack architecture.
+A Home Assistant add-on that turns your [Portfolio Performance](https://www.portfolio-performance.info/) file into a live financial dashboard, right inside Home Assistant.
 
-## Key Features
+## What it does
 
-- **Automatic file watching** -- Monitors your `.portfolio` protobuf file for changes and re-ingests automatically.
-- **Accurate metrics** -- TWR, IRR, FIFO cost basis, capital gains, and dividend tracking ported from Portfolio Performance's Java reference implementation.
-- **Live price enrichment** -- Fetches real-time quotes from Yahoo Finance and FX rates from the ECB.
-- **Interactive dashboard** -- Lit web component frontend with portfolio overview, security drill-down, time-series charts, and trade history.
-- **Real-time updates** -- Server-Sent Events push data changes to the browser as they happen.
-- **Home Assistant integration** -- Runs as an HA App with ingress support, sidebar panel, and HA theme compatibility.
+- **Automatic updates** — checks your `.portfolio` file for changes every 60 seconds by default and refreshes the dashboard automatically, no manual re-import needed.
+- **Cost basis and gain/loss** — average purchase price, purchase value, current market value, and gain/loss in absolute terms and percent, plus the day's change.
+- **Live prices** — fetches current share prices and currency exchange rates on a schedule you control, and converts non-EUR holdings at the current ECB rate.
+- **Interactive dashboard** — portfolio overview, per-security detail, historical charts, and trade history.
+- **Real-time** — the dashboard updates itself as new data arrives.
+- **Native Home Assistant integration** — appears as a sidebar panel and follows your Home Assistant theme.
 
-## Quick Start
+PP Reader is under active development. Money-weighted return (IRR) and dividend income are already computed internally but not shown anywhere yet; time-weighted return is implemented but not yet wired into the calculation pipeline.
 
-### Prerequisites
+## Installation
 
-- Docker and Docker Compose
-- A `.portfolio` file from Portfolio Performance desktop app
+1. In Home Assistant, go to **Settings → Add-ons → Add-on Store**.
+2. Click the **⋮** menu (top right) → **Repositories**.
+3. Add this repository URL: `https://github.com/Freakandi/ha-apps`
+4. Close the dialog and refresh the store page — **PP Reader** now appears in the list.
+5. Click **PP Reader**, then **Install**. Home Assistant pulls the pre-built image for your device's architecture.
 
-### 1. Clone and configure
+## Configuration
 
-```bash
-git clone https://github.com/Freakandi/pp-reader-app.git
-cd pp-reader-app
+Before starting the add-on for the first time:
 
-# Copy the example env file and edit it
-cp docker/.env.example docker/.env
-```
+1. Export or copy your `.portfolio` file (from the Portfolio Performance desktop app) into Home Assistant's `/share` directory — for example `/share/portfolios/my_portfolio.portfolio`.
+2. Open the add-on's **Configuration** tab and set `portfolio_path` to that file's path. The pre-filled value (`/share/portfolios/my_portfolio.portfolio`) is only an **example**, not a real file — if you leave it unchanged and never place a file there, or leave `portfolio_path` empty, the add-on shows a clear configuration-error message in the dashboard after starting (see the table below).
+3. Leave `db_mode` set to `local` — the add-on runs its own PostgreSQL database automatically. Only switch it to `external` if you already run your own PostgreSQL server, and fill in `db_host`, `db_port`, `db_name`, `db_user`, and `db_password` in that case.
+4. Click **Start**, then open **PP Reader** from the Home Assistant sidebar.
 
-Edit `docker/.env` and set `PORTFOLIO_PATH` to the path of your `.portfolio` file inside the container (e.g., `/app/portfolio_files/my_portfolio.portfolio`) and `PORTFOLIO_DIR` to the host directory containing that file.
+Full settings reference (defaults shown below). **Required?** means: do you
+need to set this yourself, and what happens if you don't.
 
-### 2. Start the application
+| Option | What it controls | Default | Required? |
+|--------|-------------------|---------|-----------|
+| `db_mode` | Whether PostgreSQL runs locally (managed by the add-on) or connects to an existing external server | `local` | No |
+| `db_host` | PostgreSQL host — only used when `db_mode` is `external` | *(empty)* | Only if `db_mode` is `external` — the add-on won't start without it |
+| `db_port` | PostgreSQL port — only used when `db_mode` is `external` | `5432` | No |
+| `db_name` | PostgreSQL database name — only used when `db_mode` is `external` | `pp_reader` | Only if `db_mode` is `external` — a value that doesn't match a real database on that server fails startup |
+| `db_user` | PostgreSQL username — only used when `db_mode` is `external` | `pp_reader` | Only if `db_mode` is `external` — a value that doesn't match a real user on that server fails startup |
+| `db_password` | PostgreSQL password — only used when `db_mode` is `external` | *(empty)* | Only if `db_mode` is `external` — a wrong or empty value fails startup |
+| `portfolio_path` | Path to your `.portfolio` file inside Home Assistant | `/share/portfolios/my_portfolio.portfolio` (**example only** — not a real file) | Yes — leaving it empty, leaving the example path unchanged with no file there, or pointing it at any other path with no file there (e.g. a typo) all show a clear configuration-error message on the Overview page after starting, no log access needed; the message disappears and the add-on picks the file up automatically as soon as a real `.portfolio` file exists at the configured path; if the file exists but isn't a valid `.portfolio` file the log shows a pipeline error |
+| `file_poll_interval` | How often (seconds) the add-on checks the portfolio file for changes | `60` | No |
+| `enrich_interval` | How often (seconds) prices and exchange rates are refreshed | `3600` | No |
+| `log_level` | Add-on log verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` | No |
 
-```bash
-docker compose -f docker/docker-compose.yml --env-file docker/.env up -d
-```
+## Updates
 
-### 3. Verify it's running
+Home Assistant checks the repository added above periodically and shows an **Update** button on the add-on page whenever a new version is published.
 
-```bash
-# Health check
-curl http://localhost:8000/healthz
-# Expected: {"status":"ok"}
+## Changelog
 
-# Dashboard data
-curl http://localhost:8000/api/status
-# Expected: {"last_file_update":...,"pipeline_status":"idle","version":"0.1.0"}
-```
-
-### 4. Open the dashboard
-
-Navigate to [http://localhost:8000](http://localhost:8000) in your browser.
-
-## Architecture Overview
-
-PP Reader is a three-tier application running in a single Docker container:
-
-```
-┌──────────────────────────────────────────────────────┐
-│                   Docker Container                    │
-│                                                      │
-│   FastAPI/Uvicorn    Background Scheduler   Vite SPA │
-│   (REST + SSE)       (file watch, enrich,   (Lit     │
-│                       metrics, sync)         components)│
-│         │                    │                        │
-│         └────────┬───────────┘                        │
-│              asyncpg pool                             │
-└──────────────────┼───────────────────────────────────┘
-                   │
-            ┌──────┴──────┐        ┌────────────────┐
-            │ PostgreSQL  │        │ .portfolio file │
-            └─────────────┘        └────────────────┘
-```
-
-**Data pipeline stages:** FileWatcher → Ingestion → CanonicalSync → Enrichment (FX + Prices) → Metrics → Snapshots
-
-For detailed architecture decisions, see [ARCHITECTURE.md](ARCHITECTURE.md).
-
-## Project Structure
-
-```
-pp-reader-app/
-├── backend/                  # Python FastAPI backend
-│   ├── app/
-│   │   ├── api/              # REST endpoints and SSE
-│   │   ├── db/               # Database pool, queries, migrations
-│   │   ├── enrichment/       # FX rates (ECB) and prices (Yahoo)
-│   │   ├── generated/        # Protobuf-generated code
-│   │   ├── metrics/          # TWR, IRR, cost basis, gains, dividends
-│   │   ├── models/           # Domain models and constants
-│   │   └── pipeline/         # File watcher, parser, ingestion, sync
-│   ├── tests/                # pytest test suite
-│   └── pyproject.toml
-├── frontend/                 # TypeScript Lit web components
-│   ├── src/
-│   │   ├── api/              # API client and realtime SSE
-│   │   ├── components/       # Reusable UI components
-│   │   ├── controllers/      # Lit ReactiveControllers
-│   │   ├── tabs/             # Page views (overview, security, trades...)
-│   │   └── styles/           # CSS with HA theme variable support
-│   ├── package.json
-│   └── vite.config.ts
-├── docker/                   # Docker deployment
-│   ├── Dockerfile            # Multi-stage build
-│   ├── docker-compose.yml    # App + PostgreSQL
-│   ├── run.sh                # Container entrypoint
-│   └── .env.example          # Environment variable reference
-├── pp_reader/                # Home Assistant add-on manifest
-│   └── config.yaml           # HA App config (version auto-bumped by CI)
-├── proto/                    # Portfolio Performance protobuf schema
-│   └── client.proto
-├── _legacy_v1/               # Legacy HACS integration (reference only)
-└── pp_reference/             # PP Java reference code (reference only)
-```
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical design decisions and system diagram |
-| [DEVELOPMENT.md](DEVELOPMENT.md) | Local development setup, testing, and workflow |
-| [API.md](API.md) | REST API endpoint reference |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Docker deployment and Home Assistant integration |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines and PR process |
-| [EXECUTION_PLAN.md](EXECUTION_PLAN.md) | Rebuild phases and progress tracking |
-| [DOCUMENTATION_MAINTENANCE.md](DOCUMENTATION_MAINTENANCE.md) | Documentation update guidelines |
-
-## Technology Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Backend | Python 3.13+, FastAPI, Uvicorn | REST API and async pipeline |
-| Database | PostgreSQL 16, asyncpg, Alembic | Persistence and migrations |
-| Frontend | TypeScript, Lit 3, Vite | Web component SPA |
-| Data | protobuf, yahooquery, aiohttp | File parsing, price/FX enrichment |
-| Deployment | Docker, Docker Compose | Containerized runtime |
+See [CHANGELOG.md](https://github.com/Freakandi/ha-apps/blob/main/pp-reader/CHANGELOG.md) for the full version history.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+MIT — see the [MIT License](https://opensource.org/license/MIT) text for details.

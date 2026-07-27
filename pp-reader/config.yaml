@@ -3,17 +3,16 @@
 # Ref: https://developers.home-assistant.io/docs/add-ons/configuration
 
 name: PP Reader
-version: "0.1.15"
+version: "0.1.16"
 slug: pp_reader
 description: >
   Standalone Portfolio Performance (.portfolio) reader with a full-stack web UI.
   Parses protobuf files, calculates TWR/cost-basis metrics, and serves a
   Lit-based dashboard on port 8000.
-url: https://github.com/Freakandi/pp-reader-app
+url: https://github.com/Freakandi/ha-apps
 arch:
   - aarch64
   - amd64
-  - armv7
 
 # ── Ports ────────────────────────────────────────────────────────────────────
 ports:
@@ -35,6 +34,9 @@ options:
   db_name: "pp_reader"
   db_user: "pp_reader"
   db_password: ""
+  # BEISPIEL — this default is a placeholder, not a real file. Replace it
+  # with the actual path to your own .portfolio file (see translations/en.yaml
+  # and README.md for the full explanation shown in the Supervisor UI).
   portfolio_path: "/share/portfolios/my_portfolio.portfolio"
   file_poll_interval: 60
   enrich_interval: 3600
@@ -47,7 +49,15 @@ schema:
   db_name: str
   db_user: str
   db_password: str?
-  portfolio_path: str
+  # T-029/D-006 (Antwort 19): rejects an empty value and obviously
+  # malformed paths (wrong extension, relative path, outside the mapped
+  # share/config/media directories — see `map:` below), but deliberately
+  # CANNOT reject the unedited example path above — it is a syntactically
+  # valid .portfolio path some users legitimately use as-is (see
+  # pp_reader/README.md). That distinction (edited vs. unedited) is made
+  # by the app itself at startup, not by this schema — see
+  # backend/app/pipeline/scheduler.py `classify_portfolio_path_problem`.
+  portfolio_path: match(^/(share|config|media)/.+\.portfolio$)
   file_poll_interval: int
   enrich_interval: int
   log_level: list(DEBUG|INFO|WARNING|ERROR)

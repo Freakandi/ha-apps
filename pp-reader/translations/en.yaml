@@ -1,0 +1,16 @@
+# English translation for the PP Reader add-on's Configuration UI.
+# Ref: https://developers.home-assistant.io/docs/add-ons/translations
+#
+# T-029 / D-006 (Antwort 19): labels the `portfolio_path` default shown in
+# config.yaml clearly as an EXAMPLE, so a non-programmer sees this in the
+# Supervisor's Configuration tab itself — not only in README.md.
+configuration:
+  portfolio_path:
+    name: Portfolio file path
+    description: >-
+      Path to your Portfolio Performance .portfolio file inside Home
+      Assistant, e.g. /share/portfolios/my_portfolio.portfolio. The value
+      shown by default is only an EXAMPLE, not a real file — replace it
+      with the actual path to your own .portfolio file before starting
+      the add-on, or the add-on will report a configuration error after
+      startup.
