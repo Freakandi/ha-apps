@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [1.0.6] — 2026-08-03
+
+### Fixed
+- Blank query parameters (e.g. a hand-built URL like
+  `?q_high=&weekday_long=`) on the dashboard and history/weekday API routes
+  now fall back to their normal defaults instead of failing with an HTTP 422
+  error page.
+
+## [1.0.5] — 2026-07-22
+
+### Added
+- Futures ticker support: symbols containing `=` (e.g. `GC=F` for Gold
+  futures) are now accepted by the symbol validation of the dashboard and
+  API routes, so Yahoo Finance futures can be tracked like indices.
+
 ## [1.0.4] — 2026-05-06
 
 ### Fixed

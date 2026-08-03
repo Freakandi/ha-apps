@@ -8,11 +8,12 @@ detection and weekday volatility analysis.
 
 ## What it does
 
-- **Daily strike prices** — calculates upper (call) and lower (put) boundaries using
-  30-day rolling quantiles of historical returns, applied to the previous close
+- **Daily strike prices** — calculates upper (call) and lower (put) boundaries from
+  quantiles of historical returns (10/20/30-year and weekday bases), applied to the
+  previous close; breach history uses a 30-day rolling window
 - **Breach detection** — tracks intraday and close breaches against calculated strikes
-- **Weekday volatility** — day-of-week return comparison (10Y history vs. last 90 days)
-- **Interactive dashboard** — per-index charts, statistics tables, and historical data
+- **Weekday volatility** — day-of-week return comparison (long-term history vs. recent days; default 20 years vs. 180 days)
+- **Interactive dashboard** — per-index statistics tables, strike recommendations, and historical data
 - **Home Assistant integration** — runs as a native add-on with ingress (sidebar panel)
 
 ## Supported indices
@@ -26,7 +27,9 @@ detection and weekday volatility analysis.
 | SMI | `^SSMI` |
 | CAC 40 | `^FCHI` |
 
-Additional indices can be added via the **Manage Indices** page using any Yahoo Finance ticker.
+Additional indices can be added via the **Manage Indices** page using any Yahoo Finance
+ticker — including futures symbols containing `=` (e.g. `GC=F` for Gold futures),
+supported since v1.0.5.
 
 ## Quick Start
 
