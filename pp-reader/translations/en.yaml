@@ -9,8 +9,12 @@ configuration:
     name: Portfolio file path
     description: >-
       Path to your Portfolio Performance .portfolio file inside Home
-      Assistant, e.g. /share/portfolios/my_portfolio.portfolio. The value
-      shown by default is only an EXAMPLE, not a real file — replace it
-      with the actual path to your own .portfolio file before starting
-      the add-on, or the add-on will report a configuration error after
-      startup.
+      Assistant. Must start with /share/, /config/, or /media/ and end in
+      .portfolio, e.g. /share/portfolios/my_portfolio.portfolio. The value
+      shown by default is only an EXAMPLE, not a real file. An invalid
+      format is rejected right when you save this field; a correctly
+      formatted path with no file behind it (like the unchanged example)
+      instead shows a configuration error in the dashboard after starting.
+      If the add-on suddenly won't start after an update even though it
+      worked before, re-open and re-save this field — see the add-on's
+      README for details.

@@ -10,6 +10,240 @@ This project uses [Semantic Versioning](https://semver.org/). The format is base
 
 ---
 
+## [0.1.17] - 2026-08-10
+
+### Added
+- The "Transaktionen" (Trades) tab now shows every booking from your file
+  that has a security attached — Sollzins, Steuer, Steuererstattung,
+  Gebühr and Gebührenerstattung bookings used to be missing from the list
+  entirely (only Kauf, Verkauf, Ein-/Auslieferung, Depotübertrag, Dividende
+  and Zins showed up). A new "Buchungsart" filter row above the list lets
+  you show or hide individual booking types, so the longer list stays easy
+  to scan. The "Gebühren" column now shows the sum of all fee portions on
+  a booking instead of silently dropping every portion after the first.
+- The "Zeitmaschine" tab now shows real numbers for "Zeitgew. Rendite (TWR)"
+  and "Int. Zinsfuß (IRR)" — previously these two tiles were always blank.
+  Changing the date range now updates every tile below the chart, including
+  "Gewinn / Verlust": deposits and withdrawals in the selected period are no
+  longer counted as gain or loss, only the actual change in value is (a
+  deposit shortly before the end of the range used to inflate "Gewinn /
+  Verlust" as if it were investment growth). Days with a missing price
+  (the same gap days the chart already breaks the line at) are now left
+  out of these calculations entirely, instead of counting a partial,
+  incomplete value as if it were the day's real wealth — which used to be
+  able to swing "Zeitgew. Rendite (TWR)" wildly (e.g. to -100%) right next
+  to a correct "Gewinn / Verlust" on the same card.
+- The "Zeitmaschine" tab's wealth chart now shows your full history since
+  the first transaction you ever booked, instead of starting on the day the
+  add-on happened to first run — and it survives a database rebuild instead
+  of coming back empty. Days where a price is missing for one or more
+  positions (beyond a short grace period for normal weekend/holiday gaps)
+  now show as a visible break in the line, instead of a straight line
+  papering over the gap, with a note below the chart naming how many days
+  and up to how many positions are affected — hovering near such a day now
+  snaps to the nearest day with a real value instead of showing that day's
+  incomplete partial amount. A new "Seit Beginn" button in the date-range
+  picker jumps straight to that full history in one click.
+- `GET /api/status` now reports how many bookings were read from your file
+  and how many were processed on the last sync, plus a per-type breakdown
+  (`transactions_read`, `transactions_processed`,
+  `transaction_type_breakdown`, `ignored_transaction_types`) — if a booking
+  type were ever left unprocessed, it would be named there directly instead
+  of only showing up as a smaller total.
+
+### Changed
+- Steuer and Steuererstattung bookings in the "Transaktionen" tab and on a
+  security's detail page now always show "—" under "Anteile" and "Kurs",
+  instead of sometimes showing a real-looking number there. These bookings
+  don't represent buying or selling shares, so the "share count"/"price"
+  the file records for them is really a tax rate — showing it next to real
+  trade rows read as if it were a market price. Underlying data is
+  unchanged; this is a display-only rule.
+- Documented a startup risk for existing users, present since 0.1.16: if the
+  add-on no longer starts after an update and stays in the "stopped" state,
+  with nothing shown in the app and nothing in its own log, the likely cause
+  is a `portfolio_path` value saved before 0.1.16 that no longer matches the
+  pattern enforced since then (`/share/`, `/config/`, or `/media/`, ending in
+  `.portfolio`). Open the add-on's Configuration tab, re-check `portfolio_path`,
+  and save it again — an invalid value is then flagged directly instead of
+  silently blocking the start. No code or validation behavior changed; see
+  the Store page README for the full explanation.
+
+### Fixed
+- The "Zeitmaschine" tab's wealth curve no longer drops by roughly 100.000 €
+  in early December 2025 and jumps back up on 1 June 2026 — money you move
+  into an account you have since marked as "stillgelegt" (retired) in
+  PortfolioPerformance is no longer treated as if it had left your assets.
+  Only the current asset list hides retired accounts and depots; the history
+  behind the chart was hiding them too, so 98.000 € parked in a retired
+  account for half a year simply disappeared from the curve for that whole
+  period, and reappeared out of nowhere when it was transferred back.
+  Because of this, the "1 Jahr" view reported a **loss** of −38,95 %
+  (Zeitgew. Rendite) where PortfolioPerformance shows +13,27 % for the same
+  file; it now reports +14,07 % (Int. Zinsfuß +13,87 % vs. PP's +13,22 %).
+  The remaining difference of well under one percentage point comes from
+  three papers your price provider does not deliver quotes for (below) and
+  from the two programs reading live prices at different moments; the
+  purchase values ("Kaufwert") were never affected and are unchanged.
+- The "Zeitmaschine" tab now really calculates the period you asked for. A
+  handful of papers that the price provider does not list at all — in your
+  file two long-dated options — used to disqualify **every single day** they
+  were held, and those days were then silently left out of the calculation:
+  the "1 Jahr" view was in fact computed over 09.08.2025–12.02.2026 only,
+  six months short, with nothing on screen saying so. Now a day is only
+  discarded when nothing about it can be established at all; a paper whose
+  latest quote is merely old is valued at that last real quote (never an
+  invented or interpolated price), and a paper with no quote at all counts
+  as 0 € for that day. Two things make the remainder visible instead of
+  silent: the note below the chart now names how many days are affected and
+  up to how many positions were counted as 0 €, and the "Performance" card
+  now states in plain words which period was actually calculated — either
+  "Gerechnet über den vollen Zeitraum …" or, if it had to be shortened,
+  both the calculated and the requested period.
+- "Gewinn/Verlust" for a position that was ever moved between two depots
+  (Depotübertrag) is now shown correctly in the depot it landed in —
+  previously it showed the full market value as the "gain" (e.g. +137.69%
+  instead of the correct +37.69% for an Amazon position moved on
+  2026-08-04), because the purchase value carried over by the transfer was
+  silently dropped from the gain calculation for that depot. This also
+  inflated the affected depot's own "Gesamt +/-" row and the overview's
+  "Summe" row by the same amount for every transferred position they
+  contain. Holdings, purchase value ("Kaufwert") and the wealth-over-time
+  chart were never affected — only the gain figure itself.
+- A security's detail card now shows gains in green and losses in red
+  again — on every metric that can trend (Gewinn/Verlust, Tagesveränderung,
+  Marktwert), both the native-currency line and its EUR-equivalent line
+  underneath. Every value on the card previously rendered in the plain
+  text color regardless of sign, because the trend color rule and the
+  card's own text-color rule applied to the exact same element with the
+  same specificity weight, and the card's rule happened to win — a defect
+  present since April 2026, invisible until closely compared against the
+  mockup.
+- The "Zeitmaschine" tab's date-range picker now opens as a properly
+  styled calendar (two-month grid, weekday headers, preset sidebar,
+  footer) instead of a giant unstyled block of native-looking controls
+  with the weekday initials run together as plain text and the day
+  numbers stacked one per row — almost all of the picker's CSS was
+  missing, only the closed trigger button had ever been styled. Clicking
+  a preset (e.g. "Seit Beginn") or a calendar day always changed the
+  selection correctly under the hood; the missing styling just made it
+  look like nothing happened. Also fixed: reopening the picker after
+  applying a range no longer fails to highlight the previously-selected
+  start/end day outside UTC — the applied range was round-tripped through
+  a UTC-parsed date string, `getTimezoneOffset()` away from the local day
+  the calendar actually needed.
+- Cards throughout the app (e.g. the overview's depot and account cards)
+  now sit close together (6px gap) instead of far apart (24px) — matching
+  the design mockups, which have shown 6px since an April 2026 design
+  rework that the shared card stylesheet never picked up.
+- Einlieferung and Auslieferung bookings now show their "Typ" in green resp.
+  red, matching every other booking type — both in the "Transaktionen" tab
+  (also "Betrag" there) and in a security's own transaction list on its
+  detail page, where Einlieferung bookings previously also showed the raw
+  English booking-type name instead of "Einlieferung". Both places showed up
+  colorless (neutral) and/or in English because of a leftover key mismatch
+  in the trend-color/label lookup.
+- The overview's "Gesamt +/-" and "%" figures for a depot are now consistent
+  with the positions inside it: the depot's total gain/loss is now the sum
+  of its positions' gains (matching what the position rows and the "Summe"
+  footer already showed), instead of a separately computed market-value-
+  minus-purchase-value figure that could show a different number right next
+  to the same total. The "%" next to "Gesamt +/-" now matches "Gesamt +/- ÷
+  Kaufwert" wherever a Kaufwert is shown — previously it used a different,
+  hidden cost basis (all-time invested amount, not reduced by sales), which
+  could show a misleadingly small percentage for any position that had been
+  partially sold. Where no Kaufwert is shown (a zero purchase value), no
+  percentage is shown either — unchanged.
+- The add-on no longer aborts on startup if its database is temporarily
+  unreachable (for example, an external database that is down or not
+  reachable over the network). It now starts normally and reports the
+  problem in a machine-readable way via `/api/status` (new `db_error` /
+  `pipeline_error` fields), instead of crashing outright. It automatically
+  retries the database connection every 30 seconds and recovers on its own
+  once the database is reachable again — no restart needed. While the
+  database is unreachable, the data endpoints (dashboard, portfolios,
+  accounts, securities, trades, wealth, performance) respond with a clear
+  error status instead of hanging or crashing.
+- The database-unreachable and pipeline-start-failed states are now also
+  shown directly in the web interface as a clear error banner (instead of
+  only being reported via `/api/status` for machine consumers) — visible on
+  every tab while the problem persists, and disappearing on its own again
+  once the add-on self-heals.
+- Depot-to-depot transfers (moving a position from one depot to another in
+  Portfolio Performance) are now processed correctly. Previously the
+  receiving depot did not show the transferred position at all (and so it
+  was also missing from that depot's totals), while the giving depot kept
+  showing it as if nothing had moved. The moved shares now keep their
+  original purchase cost when they change depots (no revaluation), the
+  transfer now appears as its own row in the "Transaktionen" tab, and the total
+  wealth tile is unaffected by a transfer, as expected. Buying and selling
+  the same security on the same day now also gives the same purchase cost
+  and gain regardless of the order the bookings appear in the imported file
+  — previously the file's row order could change the result. If more
+  shares are ever sold or transferred than are actually held for a
+  position, this is now recorded as a warning in the add-on's log instead
+  of being silently ignored. Transferring more shares out of a depot than
+  it actually holds is now also recorded as a warning, the same way.
+- If you hold the same security in more than one depot, each depot's own
+  row (purchase cost, position size, gain) now shows only what that depot
+  itself holds — previously it showed the combined total of every depot
+  holding that security, so the numbers looked too high (and matched
+  nothing you could check by hand). Adding up the depot rows now gives
+  exactly the total the security's own detail view shows, which now also
+  breaks the total down per depot. Dividends, taxes and fees booked on a
+  security you hold in several depots are now counted exactly once — in
+  the depot whose settlement account they were paid to — instead of once
+  per depot; if none of your depots' settlement accounts match, the
+  booking is now shown as "not assigned" in the add-on's internal run data
+  instead of silently disappearing or being spread across depots.
+- "Ø Kaufpreis" (average purchase price) now always comes from the same
+  calculation as "Kaufwert" (purchase value) — previously the two were
+  computed independently and could drift apart, so "Ø Kaufpreis × Bestand"
+  did not always add up to "Kaufwert" in the matching currency. If you hold
+  a position in a foreign currency and its purchase price truly cannot be
+  determined in that currency (no matching entry in the imported file at
+  all — an edge case that did not occur in a full check against real
+  portfolio data), "Ø Kaufpreis" is now shown as "—" instead of a number
+  that was actually in EUR but labeled with the foreign currency. The
+  security's own detail view now also shows the EUR-equivalent average
+  purchase price alongside the foreign-currency one (matching the position
+  row in the overview, which already showed both), so "Ø Kaufpreis ×
+  Bestand = Kaufwert" is checkable there too, in EUR.
+- The security detail card's "Tagesveränderung" (day change) tile showed
+  a EUR amount labelled with the security's own foreign currency (e.g. a
+  KRW position showed a EUR number tagged "KRW") — it now shows the
+  correct native-currency day change on top, with the EUR amount on its
+  own line underneath. The same native-currency-on-top / EUR-underneath
+  layout now also applies to "Kurs" (quote date moved into parentheses
+  after the price, EUR-equivalent added below for foreign-currency
+  positions), "Kaufwert", "Marktwert" and "Gewinn/Verlust" — the last one
+  shows its own percentage change on each of the two lines, since currency
+  movement between the purchase date and today can legitimately make the
+  native-currency and EUR percentages differ. "Kaufwert" in EUR is now
+  converted using the exchange rate on each purchase lot's own date (or
+  the closest earlier rate if none exists for that exact day), summed
+  across lots for positions bought in several batches — instead of always
+  using today's rate. For a security already priced in EUR, all of the
+  above collapse back to a single line, same as before. Affects the
+  security detail card only; does not change any portfolio-level totals.
+
+### Security
+- Hardened the add-on start script (`docker/run.sh`) against inherited shell
+  tracing: it now disables `xtrace` (`set +x`) as its very first action, so
+  the DB password and Supervisor token it processes no longer appear in
+  xtrace output.
+- Removed the real portfolio file `config/pp_reader_data/S-Depot.portfolio`
+  (actual financial data) from git tracking — the file stays local only.
+  `.gitignore` now blocks `*.portfolio` globally so no portfolio data file
+  can be committed anywhere in the repo. A tracked
+  `config/pp_reader_data/README.md` documents the local-only convention
+  (`S-Depot-JJJJ-MM.portfolio`, access via path configuration only). Note:
+  previously pushed versions remain in the git history on GitHub (private
+  repo); a full history purge was deliberately not performed and would be a
+  separate decision.
+
+---
+
 ## [0.1.16] - 2026-07-27
 
 This is a collective section: it bundles everything not yet documented in a

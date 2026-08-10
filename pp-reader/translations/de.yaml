@@ -1,0 +1,25 @@
+# German translation for the PP Reader add-on's Configuration UI.
+# Ref: https://developers.home-assistant.io/docs/add-ons/translations
+#
+# T-034 (Antwort 21 Punkt 6, STAKEHOLDER_INBOX.md-Archiv): Andreas' Home
+# Assistant runs in German, but the portfolio_path field description showed
+# up in English (only en.yaml existed). This file translates the current
+# en.yaml (T-042-precised wording, form rule + both error cases) into
+# natural, technically precise German. Structure mirrors en.yaml 1:1
+# (configuration.<key>.name/.description); keep both files in sync when
+# either changes.
+configuration:
+  portfolio_path:
+    name: Pfad zur Portfolio-Datei
+    description: >-
+      Pfad zu deiner Portfolio Performance .portfolio-Datei innerhalb von
+      Home Assistant. Muss mit /share/, /config/ oder /media/ beginnen und
+      auf .portfolio enden, z. B. /share/portfolios/my_portfolio.portfolio.
+      Der standardmäßig angezeigte Wert ist nur ein BEISPIEL, keine echte
+      Datei. Ein ungültiges Format wird direkt beim Speichern dieses Felds
+      abgelehnt; ein korrekt geformter Pfad ohne dahinterliegende Datei (wie
+      das unveränderte Beispiel) zeigt stattdessen nach dem Start einen
+      Konfigurationsfehler im Dashboard. Falls das Add-on nach einem Update
+      plötzlich nicht mehr startet, obwohl es vorher funktioniert hat, öffne
+      dieses Feld erneut und speichere es neu — Details siehe README des
+      Add-ons.
