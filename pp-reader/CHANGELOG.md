@@ -8,6 +8,62 @@ This project uses [Semantic Versioning](https://semver.org/). The format is base
 
 ## [Unreleased]
 
+*(nichts — nächster Eintrag beginnt hier)*
+
+## [0.2.0] - 2026-08-16
+
+### Added
+- The "Transaktionen" tab now shows EVERY booking of your file, including
+  pure account bookings that were previously invisible there — deposits/
+  withdrawals, interest, and account-side fee refunds. It also gains three
+  combinable filter dropdowns — Konto, Depot, Wertpapier — alongside the
+  existing Buchungsart filter chips; all four narrow the list together
+  (e.g. "all Kauf bookings of security X in depot Y settled through
+  account Z"). Rows for a pure account booking show "—" for Wertpapier and
+  aren't clickable (there's no security detail page to open). A "N von M"
+  counter next to the filters shows how many bookings are currently
+  displayed. The table also gained a "Konto" column alongside the
+  existing "Depot" one.
+  `GET /api/trades` gained matching optional `account`/`portfolio`/
+  `security` query parameters (AND-combined server-side) for callers that
+  want the narrowing done before the response leaves the backend; the
+  bundled tab itself still loads the full list once and filters
+  client-side, same as the pre-existing Buchungsart filter.
+- Clicking a row in the "Trades" tab now opens a real Trade-Detailseite
+  instead of a placeholder: the buy/sell/inbound-delivery bookings of that
+  one trade, how long you held it, the result in € and %, the annualized
+  return (IRR, shown as "—" under 2 actually-computed days), fees, taxes,
+  and dividends received during the trade shown separately (never counted
+  into the result), and a price chart scoped to the trade's own period with
+  markers for the entry/exit/depot-transfer bookings the chart can place
+  on the actual curve. Traded across more than one depot? Each depot gets
+  its own line with what it contributed, and the lines add up to the total
+  shown at the top. Selecting a depot in the Trades list before opening a
+  trade now also survives the trip back.
+
+### Fixed
+- The "Int. Zinsfuß (IRR)" tile on the "Zeitmaschine" tab now shows "—"
+  instead of disappearing entirely when the actually-computed period is
+  under 2 days (e.g. after trimming an incomplete edge day) — the whole
+  Performance card used to disappear in that case, since the IRR tile was
+  its last remaining tile.
+  Below the 2-day threshold `/api/performance` already returned `irr:
+  null`; from 2 days on it shows the number, however large.
+- Buy/sell markers on a security's price chart are now visible on the
+  Wertpapier-Detailseite reached from the "Übersicht" table — that page's
+  chart used to never show any markers at all, regardless of range or
+  security. The chart reached from the "Transaktionen" tab was unaffected.
+- Tax bookings (Steuer/Steuererstattung) no longer show up as a chart
+  marker on either page's price chart — a tax booking's stored "price" is
+  a per-share tax rate, not a market price, so on the chart reached from
+  the "Transaktionen" tab it used to appear as a marker labelled e.g.
+  "Steuer: 15,3614 @ 0,52 EUR", visually indistinct from a real trade.
+- On the Trade-Detailseite, "Gebühren" and "Steuern" now show real numbers
+  again for a trade with a partial sale before its final close — they used
+  to show "—" as soon as such a trade existed, even though every booking's
+  fee/tax was known. Two real sell bookings on the same day now each show
+  up as their own row in "Buchungen" instead of silently merging into one.
+
 ---
 
 ## [0.1.17] - 2026-08-10
