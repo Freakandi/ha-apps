@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-08-16
+
+### Changed
+- Container base image refreshed from
+  `ghcr.io/home-assistant/{aarch64,amd64}-base-python:3.12-alpine3.18` to
+  `ghcr.io/home-assistant/{aarch64,amd64}-base-python:3.13-alpine3.23-2026.06.1`
+  (Python 3.13 on a maintained Alpine 3.23 base instead of the unmaintained
+  3.18; Alpine 3.18 has received no security updates since 2025-05-09). Local
+  Docker Hub fallback default bumped from `python:3.12-alpine3.18` to
+  `python:3.13-alpine3.23` (`Dockerfile`, `Makefile`, `docker-compose.yml`,
+  `.env.example`, `scripts/deploy-local`). The new base image also carries
+  `PIP_EXTRA_INDEX_URL` alongside the already-present `UV_EXTRA_INDEX_URL`,
+  both pointing at the same `wheels.home-assistant.io` musllinux index — no
+  new external dependency.
+- Local dev/test environment setup (`.claude/hooks/session-start.sh`,
+  `scripts/setup_container`) now prefers Python 3.13 instead of 3.12. The
+  `apt-get` install of the Python packages is attempted separately from the
+  other system packages and is non-fatal, with `python3.12-*` as a fallback,
+  because the package names differ per release (Debian 13 carries
+  `python3.13-*`, Ubuntu 24.04 LTS only `python3.12-*`, Debian 12 neither).
+  The interpreter search picks `python3.13`, else `python3.12`, else a
+  `pyenv`/`python3` interpreter; the floor (any interpreter ≥3.12) is
+  unchanged.
+- `pyproject.toml`: `[tool.ruff] target-version` bumped from `py312` to
+  `py313`.
+
 ## [1.0.6] — 2026-08-03
 
 ### Fixed

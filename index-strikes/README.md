@@ -65,7 +65,7 @@ Browser  ──HTMX──▶  FastAPI (port 8099)
                   APScheduler  ──▶  yfinance (daily fetch)
 ```
 
-- **Backend:** Python 3.12, FastAPI, SQLAlchemy 2.x (async), Alembic, APScheduler
+- **Backend:** Python 3.13, FastAPI, SQLAlchemy 2.x (async), Alembic, APScheduler
 - **Frontend:** Jinja2 templates, HTMX, Pico CSS — no build step required
 - **Database:** PostgreSQL (external); schema `index_strikes`
 - **Data source:** Yahoo Finance via `yfinance` (daily fetch, ~10 years of history)
